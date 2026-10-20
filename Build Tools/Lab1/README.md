@@ -42,11 +42,11 @@ Test inputs: 10 and 5.
 - Divide: 2.0
 
 ## Screenshots
-### 1. Tests
+### 1. Test
 <img width="1707" height="1019" alt="MavenTest" src="https://github.com/user-attachments/assets/189b4751-2ff3-4ba8-b008-d32c891c2130" />
 
 ### 2.Package
-<img width="1707" height="1019" alt="MavenPackage" src="https://github.com/user-attachments/assets/3341e4c2-f167-4880-9dcc-e2a530b65d40" />
+<img width="1707" height="1019" alt="MavenPackage" src="https://github.com/user-attachments/assets/4485e2e7-afc0-4757-9bd4-74ae9f9b16ab" />
 
 ### 3. Run
 <img width="1698" height="473" alt="image" src="https://github.com/user-attachments/assets/bcd898b7-c499-47c2-9daf-f4afbd590173" />
