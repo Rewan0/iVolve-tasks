@@ -148,13 +148,16 @@ docker images image2
 ```
 ## Screenshots
 
-## Build the Original Image
+### Build the Original Image
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/3d4769ce-6cf9-4b56-ac7e-9f20bdf280ba" />
-## Build the Optimized Image
+
+### Build the Optimized Image
 <img width="1280" height="764" alt="Screenshot 2026-10-21 211614" src="https://github.com/user-attachments/assets/321708e2-d845-483f-aea3-ff1d87ac03bd" />
-## Compare Image Sizes
+
+### Compare Image Sizes
 <img width="2559" height="307" alt="image" src="https://github.com/user-attachments/assets/40b10105-567b-4955-babd-2504983421b2" />
-## Run the Optimized Container, Export, Remove & Load the Image
+
+### Run the Optimized Container, Export, Remove & Load the Image
 <img width="2559" height="741" alt="image" src="https://github.com/user-attachments/assets/565306fc-ee0b-4a5d-96fe-61ed84476dc5" />
 
 
