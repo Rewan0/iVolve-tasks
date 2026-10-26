@@ -1,9 +1,5 @@
 # Lab 12: Managing Configuration and Sensitive Data with ConfigMaps and Secrets
 
-![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.28.15-326CE5?logo=kubernetes&logoColor=white)
-![Status](https://img.shields.io/badge/Lab-Completed-success)
-![Track](https://img.shields.io/badge/Track-iVolve%20Cloud%20DevOps-orange)
-
 ## Objective
 
 Separate MySQL configuration from the application: non-sensitive values go in a **ConfigMap**, credentials go in a **Secret** (Base64-encoded in a YAML manifest).
