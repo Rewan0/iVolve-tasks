@@ -1,9 +1,5 @@
 # Lab 11: Namespace Management and Resource Quota Enforcement
 
-![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.28.15-326CE5?logo=kubernetes&logoColor=white)
-![Status](https://img.shields.io/badge/Lab-Completed-success)
-![Track](https://img.shields.io/badge/Track-iVolve%20Cloud%20DevOps-orange)
-
 ## Objective
 
 Isolate application resources in a dedicated namespace and enforce a limit of **3 pods** using a ResourceQuota.
