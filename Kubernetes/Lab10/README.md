@@ -35,7 +35,7 @@ Isolate a worker node so that only pods with a matching **toleration** can be sc
 
 ---
 
-## 💡 Concepts
+## Concepts
 
 | Concept | Purpose |
 |---------|---------|
