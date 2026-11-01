@@ -226,6 +226,7 @@ The statements use `IF NOT EXISTS`, which makes the init container idempotent, s
 ```bash
 kubectl apply -f ivolveapp-deployment.yaml
 ```
+<img width="2560" height="1528" alt="image" src="https://github.com/user-attachments/assets/580b2281-c497-4b93-9b1a-9ab8c284dd33" />
 
 ### Step 3: Create the ClusterIP Service
 
