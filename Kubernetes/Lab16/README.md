@@ -1,4 +1,4 @@
-<img width="1725" height="543" alt="image" src="https://github.com/user-attachments/assets/9103a610-05b9-4b57-9932-e85d7df3b32a" /># Lab 16: Pod Resource Management with CPU and Memory Requests and Limits
+# Lab 16: Pod Resource Management with CPU and Memory Requests and Limits
 
 ## Overview
 
