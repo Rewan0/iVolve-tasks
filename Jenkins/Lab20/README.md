@@ -1,3 +1,4 @@
+# Lab 20: Role-based Authorization in Jenkins
 ## Objective
 
 Restrict access to Jenkins using the **Role-based Authorization Strategy** plugin:
