@@ -4,7 +4,9 @@ metadata:
   name: ivolveapp
   namespace: ivolve
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: ivolveapp
