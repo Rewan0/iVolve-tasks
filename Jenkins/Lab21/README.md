@@ -236,6 +236,12 @@ The final successful run (build #10) completed all stages:
 
 <img width="2559" height="1369" alt="image" src="https://github.com/user-attachments/assets/2694fe23-5c77-44dc-8e7a-ff6b1b51bf54" />
 
+<img width="2548" height="1372" alt="image" src="https://github.com/user-attachments/assets/56ecdefa-0919-46e3-b3f2-1a614870b335" />
+
+<img width="2560" height="1528" alt="image" src="https://github.com/user-attachments/assets/fd908edd-26f0-4233-979f-a80a5f22e316" />
+
+<img width="2559" height="1357" alt="image" src="https://github.com/user-attachments/assets/bf87036b-df56-43a1-9ede-9e21a64d0820" />
+
 ## Conclusion
 
 A Jenkins pipeline was built that moves the Node.js application from source code to a running Deployment on Kubernetes: it builds the application and the Docker image, scans it with Trivy, pushes it to Docker Hub, removes the local image, updates the deployment manifest, and deploys it, finishing with a rollout check and post actions. Credentials are managed securely inside Jenkins, and each build produces a uniquely tagged image. Troubleshooting the registry credentials, namespace quota, node resources, and CNI issues showed how the Docker, Kubernetes, and Jenkins layers depend on each other.
