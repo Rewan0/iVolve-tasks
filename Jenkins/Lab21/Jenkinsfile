@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE = "rewan2233/ivolve-app"
+        TAG   = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Build App') {
+            steps { sh 'npm install' }
+        }
+        stage('Build Docker Image') {
+            steps { sh 'docker build -t $IMAGE:$TAG .' }
+        }
+        stage('Scan Docker Image') {
+            steps { sh 'trivy image --severity HIGH,CRITICAL $IMAGE:$TAG' }
+        }
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
+                    sh 'docker push $IMAGE:$TAG'
+                }
+            }
+        }
+        stage('Delete Local Image') {
+            steps { sh 'docker rmi $IMAGE:$TAG' }
+        }
+        stage('Update Image in Deployment File') {
+            steps { sh 'sed -i "s|image: $IMAGE:.*|image: $IMAGE:$TAG|" deployment.yaml' }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl apply -f deployment.yaml'
+                    sh 'kubectl rollout status deployment/ivolveapp -n ivolve --timeout=180s'
+                }
+            }
+        }
+    }
+
+    post {
+        always  { echo 'Pipeline finished'; sh 'docker logout || true' }
+        success { echo 'Deployed successfully' }
+        failure { echo 'Pipeline failed' }
+    }
+}
