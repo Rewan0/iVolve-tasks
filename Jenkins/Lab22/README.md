@@ -211,6 +211,10 @@ def call(String appDir, String image, String tag, String kubeCredId) {
 }
 ```
 
+**Shared Library Repository:**
+
+[jenkins-shared-lib](https://github.com/Rewan0/jenkins-shared-lib.git)
+
 | Library | Responsibility |
 |---------|----------------|
 | `buildApp` | Install dependencies and run tests |
