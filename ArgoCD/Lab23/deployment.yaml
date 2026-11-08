@@ -44,7 +44,7 @@ spec:
               EOF
       containers:
         - name: ivolveapp
-          image: rewan2233/ivolve-app:v1
+          image: rewan2233/ivolve-app:lab23-4
           ports:
             - containerPort: 3000
           envFrom:
