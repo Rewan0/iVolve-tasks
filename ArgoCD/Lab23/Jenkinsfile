@@ -1,0 +1,30 @@
+@Library('shared-lib') _
+
+pipeline {
+    agent { label 'agent-1' }
+
+    environment {
+        IMAGE    = "rewan2233/ivolve-app"
+        TAG      = "lab23-${BUILD_NUMBER}"
+        APP_DIR  = "Jenkins/Lab22"
+        MANIFEST = "ArgoCD/Lab23/deployment.yaml"
+    }
+
+    stages {
+        stage('Build App') {
+            steps { buildApp(APP_DIR) }
+        }
+        stage('Build Image') {
+            steps { buildImage(APP_DIR, IMAGE, TAG, 'dockerhub') }
+        }
+        stage('Update Manifest & Push to GitHub') {
+            steps { deployOnK8s(MANIFEST, IMAGE, TAG, 'github-creds') }
+        }
+    }
+
+    post {
+        always  { echo 'Pipeline finished' }
+        success { echo 'Manifest pushed, Argo CD will sync' }
+        failure { echo 'Pipeline failed' }
+    }
+}
