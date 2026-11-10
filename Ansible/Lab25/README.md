@@ -1,0 +1,237 @@
+# Lab 25: Automated Server Configuration Using Ansible Playbooks
+
+## Objective
+
+Write an Ansible playbook that installs Docker, kubectl, and Jenkins on the managed node, then verify the configuration.
+
+## Environment
+
+| Role | Hostname | IP Address | Operating System | Notes |
+|------|----------|------------|------------------|-------|
+| Control node | master-1 | 192.168.217.132 | Ubuntu 22.04 LTS | Ansible 2.10.8 |
+| Managed node | worker-1 | 192.168.217.133 | Ubuntu 22.04 LTS | Docker, kubectl, Jenkins |
+
+The inventory, `ansible.cfg`, and SSH key from Lab 24 are reused.
+
+```
++---------------------+                       +------------------------------+
+|    Control node     |   ansible-playbook    |         Managed node         |
+|      master-1       | --------------------> |           worker-1           |
+|                     |      site.yml         |                              |
+|  site.yml           |                       |  Docker CE                   |
+|  inventory.ini      |                       |  kubectl v1.28               |
+|  ansible.cfg        |                       |  Jenkins (port 8080)         |
++---------------------+                       +------------------------------+
+```
+
+## Tools and Technologies
+
+| Tool | Purpose |
+|------|---------|
+| Ansible playbook (YAML) | Declarative, repeatable configuration |
+| apt, apt_repository, get_url | Package repositories, signing keys, and packages |
+| stat module with `when` | Conditional execution to avoid duplicate repositories |
+| service, user, alternatives | Service management, group membership, default Java selection |
+| Docker CE, kubectl, Jenkins LTS | Software installed on the managed node |
+| OpenJDK 21 | Java runtime required by current Jenkins releases |
+
+## Implementation
+
+All commands are executed on the control node from `~/ansible-lab`.
+
+### Step 1: Confirm the Kubernetes version
+
+```bash
+kubectl version | grep -i server
+```
+
+The kubectl client should stay within one minor version of the cluster. The cluster runs v1.28, so the v1.28 package repository is used.
+
+<img width="970" height="58" alt="image" src="https://github.com/user-attachments/assets/46f6c8c4-8958-4591-bb6d-776f43be9a06" />
+
+### Step 2: Write the playbook
+
+Create `~/ansible-lab/site.yml`:
+
+```yaml
+---
+- name: Configure managed node
+  hosts: managed
+  become: true
+  vars:
+    k8s_minor: "v1.28"
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: [ca-certificates, curl, gnupg, apt-transport-https, fontconfig, openjdk-21-jre]
+        state: present
+        update_cache: true
+
+    - name: Set Java 21 as default
+      alternatives:
+        name: java
+        path: /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+
+    - name: Create keyrings dir
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    # ---- Docker ----
+    - name: Check if Docker key already exists
+      stat:
+        path: /etc/apt/keyrings/docker.gpg
+      register: docker_key
+
+    - name: Add Docker apt key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      when: not docker_key.stat.exists
+
+    - name: Add Docker repo
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        filename: docker
+      when: not docker_key.stat.exists
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: true
+
+    - name: Start and enable Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
+    # ---- kubectl ----
+    - name: Check if Kubernetes key already exists
+      stat:
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      register: k8s_key
+
+    - name: Add Kubernetes apt key
+      get_url:
+        url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_minor }}/deb/Release.key"
+        dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+        mode: '0644'
+      when: not k8s_key.stat.exists
+
+    - name: Add Kubernetes repo
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/{{ k8s_minor }}/deb/ /"
+        filename: kubernetes
+      when: not k8s_key.stat.exists
+
+    - name: Install kubectl
+      apt:
+        name: kubectl
+        state: present
+        update_cache: true
+
+    # ---- Jenkins ----
+    - name: Add Jenkins apt key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+        dest: /etc/apt/keyrings/jenkins-keyring.asc
+        mode: '0644'
+
+    - name: Add Jenkins repo
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        filename: jenkins
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: true
+
+    - name: Start and enable Jenkins
+      service:
+        name: jenkins
+        state: started
+        enabled: true
+```
+
+Key design points:
+
+- **Privilege escalation** is enabled at play level with `become: true`.
+- **Docker and Kubernetes repositories** are added only when their signing key is not already present. The managed node is a Kubernetes worker that already has both repositories configured, and apt rejects the same repository declared with two different keys.
+- **Docker CE** is used because the node already runs `containerd.io` from the Docker repository.
+- **Jenkins** requires Java 21 or newer and is installed from the stable repository using the current signing key (`jenkins.io-2026.key`). Java 21 is set as the system default with the `alternatives` module.
+- **Idempotency:** every task describes a desired state, so running the playbook again changes only what is missing.
+
+### Step 3: Validate the syntax
+
+```bash
+ansible-playbook site.yml --syntax-check
+```
+
+This parses the playbook without executing it and reports YAML or structural errors.
+
+<img width="967" height="87" alt="image" src="https://github.com/user-attachments/assets/f1a50b6e-d319-481b-a57e-7157c7231b31" />
+
+### Step 4: Run the playbook
+
+```bash
+ansible-playbook site.yml
+```
+
+Ansible connects to the managed node and runs each task in order. The play recap summarizes the result per host: tasks reported `ok` were already in the desired state, `changed` tasks modified the node, and `skipped` tasks did not meet their condition.
+
+<img width="2560" height="1528" alt="image" src="https://github.com/user-attachments/assets/4e064f86-cec5-44c5-a705-24966b9392e6" />
+
+## Verification
+
+Run on the control node:
+
+```bash
+ansible managed -m command -a "docker --version"
+ansible managed -m command -a "kubectl version --client"
+ansible managed -m command -a "java -version"
+ansible managed -b -m command -a "systemctl is-active jenkins"
+```
+
+Expected results:
+
+| Check | Result |
+|-------|--------|
+| Docker | Docker version 29.9.3 |
+| kubectl | Client Version v1.28.15 |
+| Java | OpenJDK 21 |
+| Jenkins service | active |
+
+<img width="1627" height="339" alt="image" src="https://github.com/user-attachments/assets/8ef4afe2-03d9-49b4-9dea-2abeca4f71ee" />
+
+### Jenkins web interface
+
+Retrieve the initial administrator password:
+
+```bash
+ansible managed -b -m command -a "cat /var/lib/jenkins/secrets/initialAdminPassword"
+```
+
+Open `http://192.168.217.133:8080` in a browser:
+
+1. The **Unlock Jenkins** page requests the initial administrator password. Paste the value retrieved above.
+2. On **Customize Jenkins**, select **Install suggested plugins** and wait for the installation to finish.
+3. On **Create First Admin User**, enter the account details.
+4. Confirm the Jenkins URL. The **Jenkins is ready** page and then the dashboard are displayed.
+
+<img width="2556" height="1365" alt="image" src="https://github.com/user-attachments/assets/d96d72cf-3516-4cf5-9370-89dfe074b28f" />
+
+## Conclusion
+
+A single playbook automated the installation of Docker, kubectl, and Jenkins on the managed node. Conditional tasks made the playbook safe to run against a node that already had some of the repositories configured, and the verification commands together with the Jenkins web interface confirmed the result. Re-running the playbook reports no changes, which demonstrates Ansible's idempotent behavior.
