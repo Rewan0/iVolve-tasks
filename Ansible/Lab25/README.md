@@ -232,6 +232,8 @@ Open `http://192.168.217.133:8080` in a browser:
 
 <img width="2556" height="1365" alt="image" src="https://github.com/user-attachments/assets/d96d72cf-3516-4cf5-9370-89dfe074b28f" />
 
+<img width="2539" height="1372" alt="image" src="https://github.com/user-attachments/assets/d03b5bc0-92c4-4145-971f-afd523389a30" />
+
 ## Conclusion
 
 A single playbook automated the installation of Docker, kubectl, and Jenkins on the managed node. Conditional tasks made the playbook safe to run against a node that already had some of the repositories configured, and the verification commands together with the Jenkins web interface confirmed the result. Re-running the playbook reports no changes, which demonstrates Ansible's idempotent behavior.
